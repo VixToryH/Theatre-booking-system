@@ -1,35 +1,44 @@
-from django.db import models #модель профілю користувача
-from django.conf import settings #зв’язок 1 до 1 з таблицею користувачів
+from django.db import models
+from django.conf import settings
+
+class PerformanceType(models.Model):
+    GENRE_CHOICES = [
+        ('tragedy', 'Трагедія'),
+        ('comedy', 'Комедія'),
+        ('farce', 'Фарс'),
+        ('satire', 'Сатира'),
+        ('mystery', 'Містерія'),
+        ('historical', 'Історична вистава'),
+        ('opera', 'Опера'),
+        ('operetta', 'Оперета'),
+        ('ballet', 'Балетна вистава'),
+        ('circus', 'Циркова вистава'),
+        ('monoplay', 'Вистава одного актора'),
+        ('children', 'Дитяча вистава'),
+    ]
+
+    code = models.CharField(max_length=50, choices=GENRE_CHOICES, unique=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, #використовує стандартну або кастомну модель User
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='profile' #доступ до профілю через user.profile
+        related_name='profile'
     )
-    phone = models.CharField(
-        max_length=20
-    )
-    preferred_performance_type = models.CharField(
-        max_length=50,
-        choices=[
-            ('tragedy', 'Трагедія'),
-            ('comedy', 'Комедія'),
-            ('farce', 'Фарс'),
-            ('satire', 'Сатира'),
-            ('mystery', 'Містерія'),
-            ('historical', 'Історична вистава'),
-            ('opera', 'Опера'),
-            ('operetta', 'Оперета'),
-            ('ballet', 'Балетна вистава'),
-            ('circus', 'Циркова вистава'),
-            ('monoplay', 'Вистава одного актора'),
-            ('children', 'Дитяча вистава'),
-        ],
-        blank=True, null=True #поле не обов’язкове
+    phone = models.CharField(max_length=20)
+
+    #користувач може обрати кілька жанрів
+    preferred_performance_types = models.ManyToManyField(
+        PerformanceType,
+        blank=True,
+        related_name='users'
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self): #текстове представлення об’єкта
+    def __str__(self):
         return f"{self.user.username} profile"
