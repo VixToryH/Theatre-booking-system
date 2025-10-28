@@ -1,8 +1,7 @@
-# bookings/models.py
-from django.db import models
+from django.db import models, transaction, IntegrityError
 from django.conf import settings
-from django.db import transaction, IntegrityError
-from shows.models import Show, Seat
+from shows.models import Show
+from shows.models import Seat
 
 class Booking(models.Model):
     STATUS_CHOICES = [

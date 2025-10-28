@@ -7,10 +7,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('shows.api_urls')),
+    path('api/', include('shows.urls')),
+    path('', include('bookings.urls')),
 ]
 
-from django.contrib import admin
-from django.urls import path, include
+
 
 
