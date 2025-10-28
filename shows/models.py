@@ -1,6 +1,7 @@
+from datetime import datetime
 from django.db import models
 from django.utils import timezone
-from datetime import datetime
+
 
 class Theater(models.Model):
     name = models.CharField(max_length=150, default='Театр "Голос Емоцій"')
@@ -9,6 +10,7 @@ class Theater(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Seat(models.Model):
     row = models.IntegerField()
@@ -25,6 +27,14 @@ class Seat(models.Model):
         vip = " (VIP)" if self.is_vip else ""
         return f"Ряд {self.row}, Місце {self.number}{vip}"
 
+
+class Genre(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Show(models.Model):
     STATUS_CHOICES = [
         ('active', 'Активна'),
@@ -37,11 +47,16 @@ class Show(models.Model):
     date = models.DateField()
     time = models.TimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
-    created_at = models.DateTimeField(auto_now_add=True) #коли виставу додали в базу
+    genres = models.ManyToManyField(Genre, related_name='shows', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # коли виставу додали в базу
 
     def __str__(self):
         return f"{self.title} ({self.date} {self.time})"
 
-    def is_finished(self): #перевіряє, чи вистава вже минула
+    def is_finished(self):  # перевіряє, чи вистава вже минула
         dt = timezone.make_aware(datetime.combine(self.date, self.time))
         return timezone.now() > dt
+
+
+
+

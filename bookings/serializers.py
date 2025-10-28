@@ -1,11 +1,12 @@
 from rest_framework import serializers
 from .models import Booking
 
-
 class BookingSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ('id', 'show', 'seat', 'created_at', 'user')
 
     def validate(self, data):
         """
@@ -14,15 +15,12 @@ class BookingSerializer(serializers.ModelSerializer):
         show = data['show']
         seat = data['seat']
 
-        # 🔹 Перевіряємо, чи місце вже заброньоване на цей сеанс
         if Booking.objects.filter(show=show, seat=seat).exists():
             raise serializers.ValidationError("Це місце вже заброньоване для цього сеансу.")
 
-        # 🔹 Перевірка наявності вільних місць (якщо у моделі Show є available_seats)
         if hasattr(show, 'available_seats') and show.available_seats <= 0:
             raise serializers.ValidationError("Немає вільних місць для цього сеансу.")
 
-        # 🔹 Опціонально: перевіряємо ціну
         if 'price_paid' in data and hasattr(seat, 'price'):
             if data['price_paid'] < seat.price:
                 raise serializers.ValidationError("Сплачена сума менша за ціну місця.")

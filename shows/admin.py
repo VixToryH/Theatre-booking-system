@@ -20,3 +20,4 @@ class ShowAdmin(admin.ModelAdmin):
     list_filter = ('status', 'date')
     search_fields = ('title', 'description')
     ordering = ('-date', '-time')
+    filter_horizontal = ('genres',)
