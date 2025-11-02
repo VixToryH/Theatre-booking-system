@@ -1,6 +1,17 @@
 from rest_framework import generics, permissions
 from .models import Show
 from .serializers import ShowSerializer
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+@api_view(['POST'])
+def cancel_show(request, pk):
+    try:
+        show = Show.objects.get(pk=pk)
+        show.cancel_show()
+        return Response({'message': 'Виставу скасовано та повідомлення надіслані.'})
+    except Show.DoesNotExist:
+        return Response({'error': 'Виставу не знайдено.'}, status=404)
 
 # GET /api/shows/ - список усіх вистав/ств. нову виставу для адміна
 class ShowListView(generics.ListCreateAPIView):

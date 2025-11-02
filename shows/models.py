@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.db import models
 from django.utils import timezone
-
+from django.core.mail import send_mail
 
 class Theater(models.Model):
     name = models.CharField(max_length=150, default='Театр "Голос Емоцій"')
@@ -10,7 +10,6 @@ class Theater(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Seat(models.Model):
     row = models.IntegerField()
@@ -48,7 +47,8 @@ class Show(models.Model):
     time = models.TimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     genres = models.ManyToManyField(Genre, related_name='shows', blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)  # коли виставу додали в базу
+    created_at = models.DateTimeField(auto_now_add=True)  #коли виставу додали в базу
+    is_cancelled = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.title} ({self.date} {self.time})"
@@ -57,6 +57,29 @@ class Show(models.Model):
         dt = timezone.make_aware(datetime.combine(self.date, self.time))
         return timezone.now() > dt
 
+    def cancel_show(self): #скасування вистави і розсилка листів
+        self.is_cancelled = True
+        self.save()
 
+        # Імпортуємо тут, щоб уникнути циклічного імпорту
+        from bookings.models import Booking
+
+        bookings = Booking.objects.filter(show=self)
+
+        for booking in bookings:
+            user_email = booking.user.email
+            send_mail(
+                subject=f'Виставу "{self.title}" скасовано',
+                message=(
+                    f'Шановний(а) {booking.user.username},\n\n'
+                    f'Повідомляємо, що вистава "{self.title}" '
+                    f'яку Ви забронювали на {self.date.strftime("%d.%m.%Y %H:%M")}, була скасована.\n\n'
+                    f'Оплату буде повернено найближчим часом.\n\n'
+                    f'З повагою, Театр "Voice of Emotions".'
+                ),
+                from_email=None,
+                recipient_list=[user_email],
+                fail_silently=False,
+            )
 
 

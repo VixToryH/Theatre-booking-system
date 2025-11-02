@@ -27,10 +27,6 @@ class Booking(models.Model):
 
     @classmethod
     def create_booking_safe(cls, user, show, seat, price=None):
-        """
-        Безпечне створення бронювання.
-    Використовує транзакцію й ловить помилку, якщо місце вже зайняте.
-        """
         try:
             with transaction.atomic(): #Атомарна транзакція—або все виконується, або нічого
                 booking = cls.objects.create(

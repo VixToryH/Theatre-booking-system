@@ -8,10 +8,7 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = ('id', 'show', 'seat', 'created_at', 'user')
 
-    def validate(self, data):
-        """
-        Перевірки перед створенням бронювання.
-        """
+    def validate(self, data): #перевірка перед створенням
         show = data['show']
         seat = data['seat']
 
@@ -27,10 +24,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
         return data
 
-    def create(self, validated_data):
-        """
-        Створення бронювання — автоматично додає користувача.
-        """
+    def create(self, validated_data): #при створенні автоматично додаєтся користувач
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             validated_data['user'] = request.user
