@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Theater, Seat, Show
+from .models import Theater, Seat, Show, Hall, Genre
 
 @admin.register(Theater)
 class TheaterAdmin(admin.ModelAdmin):
@@ -9,8 +9,8 @@ class TheaterAdmin(admin.ModelAdmin):
 
 @admin.register(Seat)
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ('row', 'number', 'is_vip', 'price')
-    list_filter = ('is_vip',)
+    list_display = ('hall', 'row', 'number', 'is_vip', 'price')
+    list_filter = ('hall', 'is_vip')
     search_fields = ('row', 'number')
 
 
@@ -21,3 +21,13 @@ class ShowAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description')
     ordering = ('-date', '-time')
     filter_horizontal = ('genres',)
+
+@admin.register(Hall)
+class HallAdmin(admin.ModelAdmin):
+    list_display = ('name', 'capacity')
+    search_fields = ('name',)
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)

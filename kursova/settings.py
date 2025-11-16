@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'bookings',
     'rest_framework',
     'rest_framework_simplejwt',
+    'ml',
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

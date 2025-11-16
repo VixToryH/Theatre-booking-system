@@ -31,7 +31,6 @@ class UserProfile(models.Model):
     )
     phone = models.CharField(max_length=20)
 
-    #користувач може обрати кілька жанрів
     preferred_performance_types = models.ManyToManyField(
         PerformanceType,
         blank=True,

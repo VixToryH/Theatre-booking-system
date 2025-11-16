@@ -8,5 +8,4 @@ User = get_user_model()
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        #створюємо профіль тільки якщо його ще немає
         UserProfile.objects.get_or_create(user=instance)
