@@ -2,6 +2,7 @@ import random
 from django.contrib.auth.models import User
 from shows.models import Show
 from bookings.models import Booking
+import pandas as pd
 
 def generate_ml_dataset():
     """
@@ -37,3 +38,32 @@ def generate_ml_dataset():
                 })
 
     return data
+
+def build_dataset():
+    rows = []
+
+    all_shows = Show.objects.all()
+    all_users = User.objects.all()
+
+    bookings = Booking.objects.select_related("user", "show").all()
+    for b in bookings:
+        rows.append({
+            "user_id": b.user.id,
+            "show_id": b.show.id,
+            "genres": [g.name for g in b.show.genres.all()],
+            "title": b.show.title,
+            "rating": random.choice([4, 5]),
+        })
+
+    for user in all_users:
+        for show in all_shows:
+            if not Booking.objects.filter(user=user, show=show).exists():
+                rows.append({
+                    "user_id": user.id,
+                    "show_id": show.id,
+                    "genres": [g.name for g in show.genres.all()],
+                    "title": show.title,
+                    "rating": random.choice([1, 2, 3]),
+                })
+
+    return pd.DataFrame(rows)
