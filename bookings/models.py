@@ -43,7 +43,7 @@ class Booking(models.Model):
     def __str__(self):
         if self.seat_id:
             try:
-                seat_info = f"{self.seat.row}{self.seat.number}"
+                seat_info = f"row {self.seat.row}, seat {self.seat.number}"
             except Exception:
                 seat_info = "invalid seat"
         else:
