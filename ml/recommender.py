@@ -110,3 +110,22 @@ class Recommender:
         final_sorted = sorted(combined.items(), key=lambda x: x[1], reverse=True)
 
         return [sid for sid, _ in final_sorted[:top_n]]
+
+
+    def get_recommendations_for_user(self, user_id, top_n=5):
+        if self.ratings_matrix is None or self.item_similarity is None or self.genre_sim is None:
+            return []
+        return self.hybrid_recommendations(user_id, top_n=top_n)
+
+    def get_similar_shows(self, show_id, top_n=5):
+        cbf = self.get_similar_by_genre(show_id, top_n=top_n)
+
+        if self.item_similarity is not None and show_id in self.item_similarity.index:
+            cf_scores = self.item_similarity.loc[show_id].sort_values(ascending=False)
+            cf_scores = cf_scores.drop(show_id, errors="ignore")
+            cf = list(cf_scores.head(top_n).index)
+        else:
+            cf = []
+
+        combined = list(dict.fromkeys(cbf + cf))
+        return combined[:top_n]

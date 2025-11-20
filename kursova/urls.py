@@ -24,8 +24,8 @@ urlpatterns = [
 
     path('api/bookings/', include('bookings.urls')),
 
-    path("api/recommendations/", UserRecommendationsView.as_view()),
-    path("api/recommendations/similar/<int:show_id>/", SimilarShowsView.as_view()),
+    path('api/', include('ml.urls')),
+
 ]
 
 
