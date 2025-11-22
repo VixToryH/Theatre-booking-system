@@ -11,7 +11,7 @@ async function getShow(id: string) {
 }
 
 export default async function ShowPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;   // ⬅️ ⬅️ ОБОВʼЯЗКОВО await !!
+  const { id } = await props.params;   
 
   const show = await getShow(id);
 
