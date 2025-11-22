@@ -9,7 +9,7 @@ class TheaterAdmin(admin.ModelAdmin):
 
 @admin.register(Seat)
 class SeatAdmin(admin.ModelAdmin):
-    list_display = ('hall', 'row', 'number', 'is_vip', 'price')
+    list_display = ('hall', 'row', 'number', 'is_vip')
     list_filter = ('hall', 'is_vip')
     search_fields = ('row', 'number')
 

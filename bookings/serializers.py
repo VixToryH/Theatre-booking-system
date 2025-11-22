@@ -7,6 +7,7 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ('id', 'show', 'seat', 'created_at', 'user')
+        read_only_fields = ['created_at', 'user']
 
     def validate(self, data): #перевірка перед створенням
         show = data['show']

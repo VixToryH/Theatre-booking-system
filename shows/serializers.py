@@ -12,4 +12,15 @@ class ShowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Show
-        fields = ['id', 'title', 'genres']
+        fields = [
+            'id',
+            'title',
+            'description',
+            'date',
+            'time',
+            'status',
+            'genres',
+            'duration',
+            'hall',
+            'price'
+        ]

@@ -25,7 +25,6 @@ class Seat(models.Model):
     row = models.IntegerField()
     number = models.IntegerField()
     is_vip = models.BooleanField(default=False)
-    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
 
     class Meta:
         constraints = [
@@ -60,6 +59,7 @@ class Show(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     duration = models.IntegerField()
     hall = models.ForeignKey(Hall, on_delete=models.PROTECT, related_name="shows")
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"{self.title} ({self.date} {self.time})"

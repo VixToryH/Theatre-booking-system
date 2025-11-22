@@ -55,13 +55,20 @@ class Booking(models.Model):
     def create_booking_safe(cls, user, show, seat, price=None):
         try:
             with transaction.atomic():
+
+                base_price = show.price
+                vip_extra = 200 if seat and seat.is_vip else 0
+                total_price = base_price + vip_extra
+
                 booking = cls.objects.create(
                     user=user,
                     show=show,
                     seat=seat,
-                    price_paid=price or (seat.price if seat else None),
+                    price_paid=total_price,
                     status='confirmed'
                 )
+
                 return booking, True
+
         except IntegrityError:
             return None, False
