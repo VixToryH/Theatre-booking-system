@@ -15,9 +15,28 @@ class Theater(models.Model):
 class Hall(models.Model):
     name = models.CharField(max_length=100)
     capacity = models.IntegerField()
+    rows = models.IntegerField(default=1)
+    seats_per_row = models.IntegerField(default=1)
 
     def __str__(self):
         return self.name
+
+    def generate_seats(self, vip_rows=3):
+        from .models import Seat
+
+        seats = []
+        for row in range(1, self.rows + 1):
+            for number in range(1, self.seats_per_row + 1):
+                seats.append(Seat(
+                    hall=self,
+                    row=row,
+                    number=number,
+                    is_vip=row <= vip_rows
+                ))
+
+        Seat.objects.bulk_create(seats)
+
+
 
 
 class Seat(models.Model):
