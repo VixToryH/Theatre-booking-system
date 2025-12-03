@@ -1,5 +1,5 @@
 async function getShow(id: string) {
-  const res = await fetch(`http://127.0.0.1:8000/api/shows/api/${id}/`, {
+  const res = await fetch(`http://127.0.0.1:8000/api/shows/${id}/`, {
     cache: "no-store",
   });
 
@@ -10,8 +10,8 @@ async function getShow(id: string) {
   return res.json();
 }
 
-export default async function ShowPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;   
+export default async function ShowPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
   const show = await getShow(id);
 
@@ -25,7 +25,7 @@ export default async function ShowPage(props: { params: Promise<{ id: string }> 
         <strong>Жанри:</strong>{" "}
         {show.genres?.map((g: any) => g.name).join(", ")}
       </p>
-    
+
       <p><strong>Дата:</strong> {show.date}</p>
       <p><strong>Тривалість:</strong> {show.duration} хв</p>
       <p><strong>Ціна:</strong> {show.price} грн</p>

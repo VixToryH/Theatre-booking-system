@@ -3,7 +3,7 @@ export default function HomePage() {
     <section
       className="relative w-full h-screen flex items-start justify-center overflow-hidden pt-24" 
     >
-      {/* Background Image (Тепер статичний) */}
+      {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center brightness-75"
         style={{
@@ -12,7 +12,7 @@ export default function HomePage() {
         }}
       />
 
-      {/* Плавне Затемнення Зверху (Gradient Overlay) для читабельності хедера */}
+      {/* Плавне Затемнення Зверху  */}
       <div
         className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/60 to-transparent z-0" 
       />
