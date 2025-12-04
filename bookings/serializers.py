@@ -1,34 +1,69 @@
 from rest_framework import serializers
 from .models import Booking
+from shows.models import Show, Seat
+from django.db import transaction, IntegrityError
 
-class BookingSerializer(serializers.ModelSerializer):
+
+class BookingModelSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
 
     class Meta:
         model = Booking
-        fields = ('id', 'show', 'seat', 'created_at', 'user')
-        read_only_fields = ['created_at', 'user']
+        fields = ('id', 'show', 'seat', 'price_paid', 'status', 'created_at', 'user')
 
-    def validate(self, data): #перевірка перед створенням
-        show = data['show']
-        seat = data['seat']
 
-        if Booking.objects.filter(show=show, seat=seat).exists():
-            raise serializers.ValidationError("Це місце вже заброньоване для цього сеансу.")
+class BookingCreateSerializer(serializers.Serializer):
+    show = serializers.PrimaryKeyRelatedField(queryset=Show.objects.all())
+    seats = serializers.ListField(child=serializers.IntegerField(), write_only=True)
 
-        if hasattr(show, 'available_seats') and show.available_seats <= 0:
-            raise serializers.ValidationError("Немає вільних місць для цього сеансу.")
+    bookings = serializers.ListField(read_only=True)
+    failed = serializers.ListField(read_only=True)
 
-        if 'price_paid' in data and hasattr(seat, 'price'):
-            if data['price_paid'] < seat.price:
-                raise serializers.ValidationError("Сплачена сума менша за ціну місця.")
+    def validate(self, data):
+        show = data["show"]
+        seat_ids = data["seats"]
 
+        seats_qs = Seat.objects.filter(id__in=seat_ids)
+        if seats_qs.count() != len(seat_ids):
+            raise serializers.ValidationError("Одне або декілька місць не існують.")
+
+        occupied = []
+        for seat in seats_qs:
+            if Booking.objects.filter(show=show, seat=seat).exists():
+                occupied.append(f"{seat.row}.{seat.number}")
+        if occupied:
+            raise serializers.ValidationError(f"Наступні місця вже заброньовані: {', '.join(occupied)}")
+
+        data["seats_objects"] = list(seats_qs)
         return data
 
-    def create(self, validated_data): #при створенні автоматично додаєтся користувач
+    def create(self, validated_data):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            validated_data['user'] = request.user
+        user = request.user if request else None
+        show = validated_data["show"]
+        seats = validated_data["seats_objects"]
 
-        booking = Booking.objects.create(**validated_data)
-        return booking
+        created = []
+        failed = []
+
+        for seat in seats:
+            try:
+                booking, ok = Booking.create_booking_safe(user=user, show=show, seat=seat)
+                if ok and booking:
+                    created.append({
+                        "id": booking.id,
+                        "show": booking.show.id,
+                        "seat": booking.seat.id if booking.seat else None,
+                        "row": booking.seat.row if booking.seat else None,
+                        "number": booking.seat.number if booking.seat else None,
+                        "price_paid": str(booking.price_paid) if booking.price_paid is not None else None,
+                        "created_at": booking.created_at,
+                    })
+                else:
+                    failed.append({"seat_id": seat.id, "reason": "Integrity error or already booked"})
+            except IntegrityError:
+                failed.append({"seat_id": seat.id, "reason": "IntegrityError"})
+            except Exception as e:
+                failed.append({"seat_id": seat.id, "reason": str(e)})
+
+        return {"bookings": created, "failed": failed}

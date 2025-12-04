@@ -3,8 +3,8 @@ from django.urls import path, include
 from .views import BookingViewSet
 
 router = routers.DefaultRouter()
-router.register(r'bookings', BookingViewSet)
+router.register(r'', BookingViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('', include(router.urls)),
 ]

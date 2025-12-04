@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Show, Genre, Seat
+from .models import Show, Genre, Seat, Hall
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,3 +44,28 @@ class SeatSerializer(serializers.ModelSerializer):
             status='confirmed'
         ).exists()
 
+class HallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hall
+        # Поля, необхідні фронтенду
+        fields = ['id', 'name', 'capacity']
+
+
+class ShowSerializer(serializers.ModelSerializer):
+    genres = GenreSerializer(many=True)
+    hall = HallSerializer()
+
+    class Meta:
+        model = Show
+        fields = [
+            'id',
+            'title',
+            'description',
+            'date',
+            'time',
+            'status',
+            'genres',
+            'duration',
+            'hall',
+            'price'
+        ]

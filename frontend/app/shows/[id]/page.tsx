@@ -59,8 +59,6 @@ export default async function ShowDetailsPage({ params }: { params: Promise<{ id
   )}
 </div>
 
-
-
         {/* Кнопка */}
         <a
           href={`/shows/${show.id}/book`}
