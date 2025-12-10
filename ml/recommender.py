@@ -1,8 +1,11 @@
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
 from shows.models import Show
+from ml.models import Rating
 from bookings.models import Booking
+
 
 class Recommender:
 
@@ -11,31 +14,35 @@ class Recommender:
         self.item_similarity = None
         self.genre_sim = None
 
+
     def load_data(self):
-        bookings = Booking.objects.all()
+        ratings = Rating.objects.all()
 
         data = []
-        for b in bookings:
+        for r in ratings:
             data.append({
-                "user_id": b.user.id,
-                "show_id": b.show.id,
-                "rating": 5,
+                "user_id": r.user.id,
+                "show_id": r.show.id,
+                "rating": r.rating,
             })
 
         df = pd.DataFrame(data)
+
         if df.empty:
             return False
 
         self.ratings_matrix = df.pivot_table(
             index="user_id",
             columns="show_id",
-            values="rating"
+            values="rating",
+            aggfunc='mean'
         ).fillna(0)
+
         return True
 
 
     def train_cf(self):
-        if self.ratings_matrix is None:
+        if self.ratings_matrix is None or self.ratings_matrix.empty:
             return False
 
         sim = cosine_similarity(self.ratings_matrix.T)
@@ -44,6 +51,7 @@ class Recommender:
             index=self.ratings_matrix.columns,
             columns=self.ratings_matrix.columns
         )
+
         return True
 
 
@@ -54,6 +62,9 @@ class Recommender:
         user_ratings = self.ratings_matrix.loc[user_id]
         watched = user_ratings[user_ratings > 0].index
 
+        if watched.empty:
+            return []
+
         scores = self.item_similarity.loc[watched].sum().sort_values(ascending=False)
         scores = scores.drop(watched, errors="ignore")
 
@@ -62,11 +73,14 @@ class Recommender:
 
     def train_cbf(self):
         shows = list(Show.objects.all())
-
         if not shows:
             return False
 
-        genres_text = [" ".join(g.name for g in s.genres.all()) for s in shows]
+        genres_text = []
+
+        for s in shows:
+            tags = [g.name for g in s.genres.all()]
+            genres_text.append(" ".join(tags) if tags else "unknown")
 
         vect = TfidfVectorizer()
         tfidf = vect.fit_transform(genres_text)
@@ -77,19 +91,24 @@ class Recommender:
             index=[s.id for s in shows],
             columns=[s.id for s in shows]
         )
+
         return True
 
 
     def get_similar_by_genre(self, show_id, top_n=5):
-        if self.genre_sim is None or show_id not in self.genre_sim.index:
+        if self.genre_sim is None:
+            return []
+        if show_id not in self.genre_sim.index:
             return []
 
         scores = self.genre_sim.loc[show_id].sort_values(ascending=False)
         scores = scores.drop(show_id, errors="ignore")
+
         return list(scores.head(top_n).index)
 
 
-    def hybrid_recommendations(self, user_id, top_n=5, w_cf=0.5, w_cbf=0.5):
+    def hybrid_recommendations(self, user_id, top_n=5, w_cf=0.6, w_cbf=0.4):
+
         cf_rec = self.get_cf_recommendations(user_id, top_n=20)
 
         cbf_scores = {}
@@ -101,24 +120,24 @@ class Recommender:
             for s2, score in similar.items():
                 cbf_scores[s2] = cbf_scores.get(s2, 0) + score * w_cbf
 
-        cf_scores = {sid: (i * w_cf) for i, sid in enumerate(cf_rec[::-1])}
+        cf_scores = {sid: (len(cf_rec) - i) * w_cf for i, sid in enumerate(cf_rec)}
 
         combined = {}
         for sid in set(cf_scores) | set(cbf_scores):
             combined[sid] = cf_scores.get(sid, 0) + cbf_scores.get(sid, 0)
 
         final_sorted = sorted(combined.items(), key=lambda x: x[1], reverse=True)
-
         return [sid for sid, _ in final_sorted[:top_n]]
 
 
     def get_recommendations_for_user(self, user_id, top_n=5):
         if self.ratings_matrix is None or self.item_similarity is None or self.genre_sim is None:
             return []
-        return self.hybrid_recommendations(user_id, top_n=top_n)
+        return self.hybrid_recommendations(user_id, top_n)
+
 
     def get_similar_shows(self, show_id, top_n=5):
-        cbf = self.get_similar_by_genre(show_id, top_n=top_n)
+        cbf = self.get_similar_by_genre(show_id, top_n)
 
         if self.item_similarity is not None and show_id in self.item_similarity.index:
             cf_scores = self.item_similarity.loc[show_id].sort_values(ascending=False)

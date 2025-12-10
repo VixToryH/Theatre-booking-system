@@ -20,11 +20,10 @@ class Booking(models.Model):
         on_delete=models.PROTECT,
         related_name='bookings'
     )
+
     seat = models.ForeignKey(
         Seat,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        on_delete=models.PROTECT
     )
 
     price_paid = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)

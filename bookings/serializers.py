@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Booking
 from shows.models import Show, Seat
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError
 
 
 class BookingModelSerializer(serializers.ModelSerializer):
@@ -31,8 +31,11 @@ class BookingCreateSerializer(serializers.Serializer):
         for seat in seats_qs:
             if Booking.objects.filter(show=show, seat=seat).exists():
                 occupied.append(f"{seat.row}.{seat.number}")
+
         if occupied:
-            raise serializers.ValidationError(f"Наступні місця вже заброньовані: {', '.join(occupied)}")
+            raise serializers.ValidationError(
+                f"Наступні місця вже заброньовані: {', '.join(occupied)}"
+            )
 
         data["seats_objects"] = list(seats_qs)
         return data
@@ -48,22 +51,48 @@ class BookingCreateSerializer(serializers.Serializer):
 
         for seat in seats:
             try:
-                booking, ok = Booking.create_booking_safe(user=user, show=show, seat=seat)
+                booking, ok = Booking.create_booking_safe(
+                    user=user,
+                    show=show,
+                    seat=seat
+                )
                 if ok and booking:
                     created.append({
                         "id": booking.id,
                         "show": booking.show.id,
-                        "seat": booking.seat.id if booking.seat else None,
-                        "row": booking.seat.row if booking.seat else None,
-                        "number": booking.seat.number if booking.seat else None,
-                        "price_paid": str(booking.price_paid) if booking.price_paid is not None else None,
+                        "seat": booking.seat.id,
+                        "row": booking.seat.row,
+                        "number": booking.seat.number,
+                        "price_paid": str(booking.price_paid),
                         "created_at": booking.created_at,
                     })
                 else:
-                    failed.append({"seat_id": seat.id, "reason": "Integrity error or already booked"})
+                    failed.append({"seat_id": seat.id, "reason": "Integrity error"})
+
             except IntegrityError:
                 failed.append({"seat_id": seat.id, "reason": "IntegrityError"})
             except Exception as e:
                 failed.append({"seat_id": seat.id, "reason": str(e)})
 
         return {"bookings": created, "failed": failed}
+
+
+class SeatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Seat
+        fields = ('id', 'row', 'number', 'is_vip')
+
+
+class ShowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Show
+        fields = ('id', 'title', 'date', 'time')
+
+
+class BookingListSerializer(serializers.ModelSerializer):
+    show = ShowSerializer()
+    seat = SeatSerializer()
+
+    class Meta:
+        model = Booking
+        fields = ('id', 'show', 'seat', 'price_paid', 'status', 'created_at')

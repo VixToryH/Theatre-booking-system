@@ -24,6 +24,8 @@ urlpatterns = [
 
     path('api/bookings/', include('bookings.urls')),
 
+    path('api/mlrate/', include('ml.urls')),
+
     path('api/', include('ml.urls')),
 
 ]
