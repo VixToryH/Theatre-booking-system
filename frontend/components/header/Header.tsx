@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import MyBookingsPanel from "@/components/MyBookingsPanel";
 
 export default function Header() {
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(null);
+  const [showPanel, setShowPanel] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("access");
@@ -61,12 +63,18 @@ export default function Header() {
           ) : (
             <div className="flex items-center gap-3">
 
-              {/* Лише ім'я */}
+              {/* Кнопка МОЇ БРОНЮВАННЯ */}
+              <Button
+                onClick={() => setShowPanel(true)}
+                className="bg-[#4B2E15] hover:bg-[#3b2411] px-4 py-2 rounded-xl text-white shadow-lg mt-1"
+              >
+                Мої бронювання
+              </Button>
+
               <span className="text-white font-medium text-lg">
                 {username}
               </span>
 
-              {/* Вийти */}
               <Button 
                 className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl"
                 onClick={handleLogout}
@@ -76,8 +84,10 @@ export default function Header() {
             </div>
           )}
         </div>
-
       </div>
+
+      {/* Панель бронювань */}
+      <MyBookingsPanel open={showPanel} onClose={() => setShowPanel(false)} />
     </header>
   );
 }
