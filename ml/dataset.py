@@ -23,8 +23,6 @@ def generate_ml_dataset():
     all_shows = list(Show.objects.all())
 
     for user in all_users:
-        print("SHOWS COUNT:", len(all_shows))
-        print("SHOWS:", all_shows)
 
         max_k = min(len(all_shows), 6)
         watched = random.sample(all_shows, k=random.randint(2, max_k))

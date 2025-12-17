@@ -37,7 +37,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         return Response(result, status=status.HTTP_201_CREATED)
 
-    # Новий кастомний action для "моїх бронювань"
+    # Новий action для "моїх бронювань"
     @action(detail=False, methods=["get"], url_path="my")
     def my_bookings(self, request):
         bookings = (
