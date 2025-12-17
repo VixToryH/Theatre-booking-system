@@ -11,18 +11,18 @@
 Використані технології  
 
 Серверна частина  
--Python  
--Django  
--Django REST Framework  
--SQLite  
--Pandas  
--Scikit-learn  
+- Python  
+- Django  
+- Django REST Framework  
+- SQLite  
+- Pandas  
+- Scikit-learn  
 
 Клієнтська частина  
--Next.js
--React  
--JavaScript / TypeScript  
--Tailwind CSS  
+- Next.js
+- React  
+- JavaScript / TypeScript  
+- Tailwind CSS  
 
 Структура проєкту  
 bookings – робота з бронюванням місць  
